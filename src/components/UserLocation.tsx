@@ -4,6 +4,18 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Loader2, MapPin } from "lucide-react";
 import { Button } from "./ui/button";
+import { GoogleMap, Marker, LoadScript } from "@react-google-maps/api";
+
+const mapContainerStyle = {
+  width: "100%",
+  height: "300px",
+  borderRadius: "0.5rem",
+};
+
+const defaultCenter = {
+  lat: 35.6762,
+  lng: 139.6503,
+};
 
 export function UserLocation() {
   const [location, setLocation] = useState<{
@@ -94,6 +106,28 @@ export function UserLocation() {
                     <p className="font-mono">{location.longitude.toFixed(6)}</p>
                   </div>
                 </div>
+
+                <LoadScript
+                  googleMapsApiKey={
+                    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!
+                  }
+                >
+                  <GoogleMap
+                    mapContainerStyle={mapContainerStyle}
+                    center={{
+                      lat: location.latitude,
+                      lng: location.longitude,
+                    }}
+                    zoom={16}
+                  >
+                    <Marker
+                      position={{
+                        lat: location.latitude,
+                        lng: location.longitude,
+                      }}
+                    />
+                  </GoogleMap>
+                </LoadScript>
 
                 <Button
                   onClick={fetchAddress}
