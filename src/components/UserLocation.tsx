@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Loader2, MapPin } from "lucide-react";
+import { Button } from "./ui/button";
 
 export function UserLocation() {
   const [location, setLocation] = useState<{
@@ -65,38 +68,64 @@ export function UserLocation() {
   };
 
   return (
-    <div className="p-6 rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-2xl">
-      <h2 className="text-2xl font-bold mb-6">現在位置の確認</h2>
-      {error ? (
-        <p className="text-red-500">{error}</p>
-      ) : (
-        <div className="space-y-4">
-          {location.latitude && location.longitude ? (
-            <>
-              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                <p className="mb-2">緯度: {location.latitude.toFixed(6)}</p>
-                <p>経度: {location.longitude.toFixed(6)}</p>
-              </div>
-              <button
-                onClick={fetchAddress}
-                disabled={loading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-              >
-                {loading ? "住所を取得中..." : "住所を取得"}
-              </button>
-              {address && (
-                <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <p className="font-medium">住所: {address}</p>
+    <Card className="w-full max-w-2xl">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <MapPin className="h-6 w-6" />
+          現在位置の確認
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {error ? (
+          <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg">
+            {error}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {location.latitude && location.longitude ? (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-muted rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-1">緯度</p>
+                    <p className="font-mono">{location.latitude.toFixed(6)}</p>
+                  </div>
+                  <div className="p-4 bg-muted rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-1">経度</p>
+                    <p className="font-mono">{location.longitude.toFixed(6)}</p>
+                  </div>
                 </div>
-              )}
-            </>
-          ) : (
-            <p className="text-gray-600 dark:text-gray-400">
-              位置情報を取得中...
-            </p>
-          )}
-        </div>
-      )}
-    </div>
+
+                <Button
+                  onClick={fetchAddress}
+                  disabled={loading}
+                  className="w-full"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      住所を取得中...
+                    </>
+                  ) : (
+                    "住所を取得"
+                  )}
+                </Button>
+
+                {address && (
+                  <div className="p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-1">住所</p>
+                    <p className="font-medium">{address}</p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="flex items-center justify-center p-8">
+                <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                <p className="text-muted-foreground">位置情報を取得中...</p>
+              </div>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
