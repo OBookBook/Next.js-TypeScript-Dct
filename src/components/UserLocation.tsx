@@ -113,7 +113,7 @@ export function UserLocation() {
                 {address && (
                   <div className="p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg">
                     <p className="text-sm text-muted-foreground mb-1">住所</p>
-                    <p className="font-medium">{address}</p>
+                    <p className="font-medium break-all">{address}</p>
                   </div>
                 )}
               </>

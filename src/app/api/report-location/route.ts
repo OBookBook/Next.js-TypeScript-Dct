@@ -6,61 +6,84 @@ export async function POST(request: Request) {
 
     // Google Maps Geocoding APIを使用して住所を取得
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-    const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}&language=ja&region=JP`;
+    const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}&language=ja&region=JP&result_type=street_address|premise|sublocality|postal_code`;
 
     const response = await fetch(geocodeUrl);
     const data = await response.json();
 
     if (data.results && data.results.length > 0) {
-      // 最も詳細な結果を使用（通常は最初の結果）
-      const result = data.results[0];
-      const addressComponents = result.address_components;
+      // 最も詳細な結果を使用
+      const addressComponents = data.results[0].address_components;
 
       // 住所要素のマッピング
-      const addressMap: { [key: string]: string } = {};
+      const addressParts: { [key: string]: string } = {};
 
+      // 住所コンポーネントの解析
       addressComponents.forEach((component: any) => {
         const types = component.types;
+
         if (types.includes("postal_code")) {
-          addressMap.postalCode = component.long_name;
-        } else if (types.includes("administrative_area_level_1")) {
-          addressMap.prefecture = component.long_name;
-        } else if (
-          types.includes("locality") ||
-          types.includes("administrative_area_level_2")
-        ) {
-          addressMap.city = component.long_name;
-        } else if (types.includes("sublocality_level_1")) {
-          addressMap.district1 = component.long_name;
-        } else if (types.includes("sublocality_level_2")) {
-          addressMap.district2 = component.long_name;
-        } else if (types.includes("sublocality_level_3")) {
-          addressMap.district3 = component.long_name;
-        } else if (types.includes("sublocality_level_4")) {
-          addressMap.district4 = component.long_name;
-        } else if (types.includes("premise")) {
-          addressMap.premise = component.long_name;
+          addressParts.postalCode = component.long_name;
+        }
+        if (types.includes("country")) {
+          addressParts.country = component.long_name;
+        }
+        if (types.includes("administrative_area_level_1")) {
+          addressParts.prefecture = component.long_name;
+        }
+        if (types.includes("administrative_area_level_2")) {
+          addressParts.city = component.long_name;
+        }
+        if (types.includes("locality") && !addressParts.city) {
+          addressParts.city = component.long_name;
+        }
+        if (types.includes("sublocality_level_1")) {
+          addressParts.ward = component.long_name;
+        }
+        if (types.includes("sublocality_level_2")) {
+          addressParts.district = component.long_name;
+        }
+        if (types.includes("sublocality_level_3")) {
+          addressParts.block = component.long_name;
+        }
+        if (types.includes("sublocality_level_4")) {
+          addressParts.subBlock = component.long_name;
+        }
+        if (types.includes("premise")) {
+          addressParts.premise = component.long_name;
+        }
+        if (types.includes("street_number")) {
+          addressParts.streetNumber = component.long_name;
         }
       });
 
+      // 郵便番号を先頭に配置
+      const postalCodeStr = addressParts.postalCode
+        ? `〒${addressParts.postalCode} `
+        : "";
+
       // 日本の住所形式で組み立て
-      const formattedAddress = [
-        addressMap.prefecture || "",
-        addressMap.city || "",
-        addressMap.district1 || "",
-        addressMap.district2 || "",
-        addressMap.district3 || "",
-        addressMap.district4 || "",
-        addressMap.premise || "",
+      const addressStr = [
+        addressParts.prefecture || "",
+        addressParts.city || "",
+        addressParts.ward || "",
+        addressParts.district || "",
+        addressParts.block || "",
+        addressParts.subBlock || "",
+        addressParts.streetNumber || "",
+        addressParts.premise || "",
       ]
         .filter(Boolean)
         .join("");
 
+      // 最終的な住所文字列
+      const formattedAddress = postalCodeStr + addressStr;
+
       return NextResponse.json({
         address: formattedAddress,
         fullDetails: {
-          rawAddress: result.formatted_address,
-          components: addressMap,
+          rawComponents: addressParts,
+          rawAddress: data.results[0].formatted_address,
           allResults: data.results,
         },
       });
