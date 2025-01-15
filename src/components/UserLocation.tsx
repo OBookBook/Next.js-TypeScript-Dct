@@ -12,6 +12,23 @@ const mapContainerStyle = {
   borderRadius: "0.5rem",
 };
 
+// マップのデフォルトオプション
+const mapOptions: google.maps.MapOptions = {
+  mapTypeControl: true,
+  mapTypeId: "satellite", // 衛星写真表示
+  scaleControl: true,
+  streetViewControl: true,
+  fullscreenControl: true,
+  zoomControl: true,
+  // デフォルトUIコントロールのスタイル
+  controlSize: 30,
+  mapTypeControlOptions: {
+    style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+    position: google.maps.ControlPosition.TOP_RIGHT,
+    mapTypeIds: ["roadmap", "satellite", "hybrid", "terrain"],
+  },
+};
+
 const defaultCenter = {
   lat: 35.6762,
   lng: 139.6503,
@@ -118,7 +135,8 @@ export function UserLocation() {
                       lat: location.latitude,
                       lng: location.longitude,
                     }}
-                    zoom={16}
+                    zoom={18}
+                    options={mapOptions}
                   >
                     <Marker
                       position={{
