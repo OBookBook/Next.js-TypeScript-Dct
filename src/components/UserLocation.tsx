@@ -15,7 +15,7 @@ const mapContainerStyle = {
 // マップのデフォルトオプションを関数として定義
 const getMapOptions = (): google.maps.MapOptions => ({
   mapTypeControl: true,
-  mapTypeId: "satellite",
+  mapTypeId: "hybrid",
   scaleControl: true,
   streetViewControl: true,
   fullscreenControl: true,
@@ -26,6 +26,19 @@ const getMapOptions = (): google.maps.MapOptions => ({
     position: 3, // TOP_RIGHT = 3
     mapTypeIds: ["roadmap", "satellite", "hybrid", "terrain"],
   },
+  // 地図のスタイル設定
+  styles: [
+    {
+      featureType: "all",
+      elementType: "labels",
+      stylers: [{ visibility: "on" }],
+    },
+    {
+      featureType: "poi",
+      elementType: "labels",
+      stylers: [{ visibility: "on" }],
+    },
+  ],
 });
 
 const defaultCenter = {
