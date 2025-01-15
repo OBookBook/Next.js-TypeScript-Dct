@@ -12,41 +12,57 @@ export async function POST(request: Request) {
     const data = await response.json();
 
     if (data.results && data.results.length > 0) {
-      // 住所コンポーネントを解析
-      const addressComponents = data.results[0].address_components;
+      // 最も詳細な結果を使用（通常は最初の結果）
+      const result = data.results[0];
+      const addressComponents = result.address_components;
 
-      // 必要な住所要素を抽出
-      const prefecture =
-        addressComponents.find((component: any) =>
-          component.types.includes("administrative_area_level_1")
-        )?.long_name || "";
+      // 住所要素のマッピング
+      const addressMap: { [key: string]: string } = {};
 
-      const city =
-        addressComponents.find(
-          (component: any) =>
-            component.types.includes("locality") ||
-            component.types.includes("administrative_area_level_2")
-        )?.long_name || "";
-
-      const district =
-        addressComponents.find((component: any) =>
-          component.types.includes("sublocality_level_1")
-        )?.long_name || "";
-
-      const street =
-        addressComponents.find(
-          (component: any) =>
-            component.types.includes("sublocality_level_2") ||
-            component.types.includes("premise")
-        )?.long_name || "";
+      addressComponents.forEach((component: any) => {
+        const types = component.types;
+        if (types.includes("postal_code")) {
+          addressMap.postalCode = component.long_name;
+        } else if (types.includes("administrative_area_level_1")) {
+          addressMap.prefecture = component.long_name;
+        } else if (
+          types.includes("locality") ||
+          types.includes("administrative_area_level_2")
+        ) {
+          addressMap.city = component.long_name;
+        } else if (types.includes("sublocality_level_1")) {
+          addressMap.district1 = component.long_name;
+        } else if (types.includes("sublocality_level_2")) {
+          addressMap.district2 = component.long_name;
+        } else if (types.includes("sublocality_level_3")) {
+          addressMap.district3 = component.long_name;
+        } else if (types.includes("sublocality_level_4")) {
+          addressMap.district4 = component.long_name;
+        } else if (types.includes("premise")) {
+          addressMap.premise = component.long_name;
+        }
+      });
 
       // 日本の住所形式で組み立て
-      const formattedAddress =
-        `${prefecture}${city}${district}${street}`.trim();
+      const formattedAddress = [
+        addressMap.prefecture || "",
+        addressMap.city || "",
+        addressMap.district1 || "",
+        addressMap.district2 || "",
+        addressMap.district3 || "",
+        addressMap.district4 || "",
+        addressMap.premise || "",
+      ]
+        .filter(Boolean)
+        .join("");
 
       return NextResponse.json({
         address: formattedAddress,
-        fullDetails: data.results[0], // デバッグ用に完全な結果も含める
+        fullDetails: {
+          rawAddress: result.formatted_address,
+          components: addressMap,
+          allResults: data.results,
+        },
       });
     } else {
       return NextResponse.json(
